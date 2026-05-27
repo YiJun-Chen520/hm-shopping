@@ -11,6 +11,9 @@ import Cart from '@/views/layout/cart.vue'
 import Category from '@/views/layout/category.vue'
 import User from '@/views/layout/user.vue'
 
+import store from '@/store'
+import { Toast } from 'vant'
+
 Vue.use(VueRouter)
 
 const router = new VueRouter({
@@ -59,6 +62,26 @@ const router = new VueRouter({
       component: Search
     }
   ]
+})
+
+// 权限拦截
+const authUrl = ['/pay', '/myorder']
+router.beforeEach((to, from, next) => {
+  if (!authUrl.includes(to.path)) {
+    // 不需要登录的页面，直接放行
+    next()
+  }
+
+  // 需要登录的页面，判断是否已经登录
+  const token = store.getters.token
+  if (token) {
+    // 已经登录，直接放行
+    next()
+  } else {
+    // 没有登录，跳转到登录页面
+    Toast('请先登录')
+    next('/login')
+  }
 })
 
 export default router
