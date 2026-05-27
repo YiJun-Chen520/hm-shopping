@@ -9,7 +9,7 @@
 
       <div class="form">
         <div class="form-item">
-          <input class="inp" maxlength="11" placeholder="请输入手机号码" type="text">
+          <input v-model="mobile" class="inp" maxlength="11" placeholder="请输入手机号码" type="text">
         </div>
         <div class="form-item">
           <input v-model="picCode" class="inp" maxlength="5" placeholder="请输入图形验证码" type="text">
@@ -17,7 +17,9 @@
         </div>
         <div class="form-item">
           <input class="inp" placeholder="请输入短信验证码" type="text">
-          <button>获取验证码</button>
+          <button @click="getCode">
+            {{ second === totalSecond ? '获取验证码' : `${second}s后重试` }}
+          </button>
         </div>
       </div>
 
@@ -27,16 +29,21 @@
 </template>
 
 <script>
-import request from '@/utils/request'
+import { getPicCodeAPI, getSMsgCodeAPI } from '@/api/login'
+import { Toast } from 'vant'
 
 export default {
   name: 'LoginPage',
 
   data () {
     return {
-      picCode: '', // 用户输入的图片验证码
       picKey: '', // 图片验证码的key
-      picUrl: '' // 图片验证码的URL
+      picUrl: '', // 图片验证码的URL
+      totalSecond: 5, // 获取验证码的倒计时总秒数
+      second: 5, // 获取验证码的倒计时秒数
+      timer: null, // 获取验证码的倒计时定时器
+      mobile: '', // 用户输入的手机号
+      picCode: '' // 用户输入的图片验证码
     }
   },
 
@@ -45,11 +52,56 @@ export default {
   },
 
   methods: {
+    // 获取图形验证码
     async getPicCode () {
-      const { data: { base64, key } } = await request.get('/captcha/image')
+      const { data: { base64, key } } = await getPicCodeAPI()
       this.picKey = key
       this.picUrl = base64
+    },
+
+    // 校验图形验证码和手机号是否合法
+    checkPicCodeAndMobile () {
+      if (!/^1[3-9]\d{9}$/.test(this.mobile)) {
+        Toast('请输入正确的手机号')
+        return false
+      }
+
+      if (!/^\w{4}$/.test(this.picCode)) {
+        Toast('请输入正确的图形验证码')
+        return false
+      }
+
+      return true
+    },
+
+    // 获取短信验证码
+    async getCode () {
+      // 校验图形验证码和手机号是否合法
+      if (!this.checkPicCodeAndMobile()) {
+        return
+      }
+      // 计时器
+      if (!this.timer && this.second === this.totalSecond) {
+        // 发送请求获取短信验证码
+        await getSMsgCodeAPI(this.picCode, this.picKey, this.mobile)
+        Toast('验证码已发送')
+
+        this.timer = setInterval(() => {
+          this.second--
+
+          if (this.second === 0) {
+            clearInterval(this.timer)
+            this.timer = null
+            this.second = this.totalSecond
+          }
+        }, 1000)
+      }
     }
+  },
+
+  destroyed () {
+    clearInterval(this.timer)
+    this.timer = null
   }
 }
 </script>
