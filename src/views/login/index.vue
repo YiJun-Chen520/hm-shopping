@@ -16,20 +16,20 @@
           <img v-if="picUrl" :src="picUrl" @click="getPicCode" alt="图形验证码">
         </div>
         <div class="form-item">
-          <input class="inp" placeholder="请输入短信验证码" type="text">
+          <input v-model="msgCode" class="inp" placeholder="请输入短信验证码" type="text">
           <button @click="getCode">
             {{ second === totalSecond ? '获取验证码' : `${second}s后重试` }}
           </button>
         </div>
       </div>
 
-      <div class="login-btn">登录</div>
+      <div @click="login" class="login-btn">登录</div>
     </div>
   </div>
 </template>
 
 <script>
-import { getPicCodeAPI, getSMsgCodeAPI } from '@/api/login'
+import { getPicCodeAPI, getSMsgCodeAPI, loginAPI } from '@/api/login'
 import { Toast } from 'vant'
 
 export default {
@@ -43,7 +43,8 @@ export default {
       second: 5, // 获取验证码的倒计时秒数
       timer: null, // 获取验证码的倒计时定时器
       mobile: '', // 用户输入的手机号
-      picCode: '' // 用户输入的图片验证码
+      picCode: '', // 用户输入的图片验证码
+      msgCode: '' // 用户输入的短信验证码
     }
   },
 
@@ -83,7 +84,8 @@ export default {
       // 计时器
       if (!this.timer && this.second === this.totalSecond) {
         // 发送请求获取短信验证码
-        await getSMsgCodeAPI(this.picCode, this.picKey, this.mobile)
+        const res = await getSMsgCodeAPI(this.picCode, this.picKey, this.mobile)
+        console.log(res)
         Toast('验证码已发送')
 
         this.timer = setInterval(() => {
@@ -96,6 +98,21 @@ export default {
           }
         }, 1000)
       }
+    },
+
+    // 登录
+    async login () {
+      // 验证信息
+      if (!this.checkPicCodeAndMobile()) {
+        return
+      }
+
+      const res = await loginAPI(this.mobile, this.msgCode)
+      // 将登录权证存入vuex
+      this.$store.commit('user/setUserInfo', res.data)
+      console.log(res)
+      Toast('登录成功')
+      this.$router.push('/')
     }
   },
 

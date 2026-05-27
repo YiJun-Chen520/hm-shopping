@@ -16,3 +16,15 @@ export const getSMsgCodeAPI = (captchaCode, captchaKey, mobile) => {
     }
   })
 }
+
+export const loginAPI = (mobile, smsCode) => {
+  // 登录接口
+  return request.post('/passport/login', {
+    form: {
+      isParty: false,
+      partyData: {},
+      mobile,
+      smsCode
+    }
+  })
+}
