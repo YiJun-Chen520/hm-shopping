@@ -1,6 +1,6 @@
 // vant-ui组件库
 import Vue from 'vue'
-import { PullRefresh, Button, Tabbar, TabbarItem, NavBar, Toast, Search, Swipe, SwipeItem, Grid, GridItem, Icon } from 'vant'
+import { PullRefresh, Button, Tabbar, TabbarItem, NavBar, Toast, Search, Swipe, SwipeItem, Grid, GridItem, Icon, Rate } from 'vant'
 
 Vue.use(PullRefresh)
 Vue.use(Tabbar)
@@ -14,3 +14,4 @@ Vue.use(Swipe)
 Vue.use(SwipeItem)
 Vue.use(Grid)
 Vue.use(Icon)
+Vue.use(Rate)
