@@ -1,7 +1,8 @@
 // vant-ui组件库
 import Vue from 'vue'
-import { PullRefresh, Button, Tabbar, TabbarItem, NavBar, Toast, Search, Swipe, SwipeItem, Grid, GridItem, Icon, Rate } from 'vant'
+import { ActionSheet, PullRefresh, Button, Tabbar, TabbarItem, NavBar, Toast, Search, Swipe, SwipeItem, Grid, GridItem, Icon, Rate } from 'vant'
 
+Vue.use(ActionSheet)
 Vue.use(PullRefresh)
 Vue.use(Tabbar)
 Vue.use(TabbarItem)
