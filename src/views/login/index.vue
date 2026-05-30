@@ -112,7 +112,9 @@ export default {
       this.$store.commit('user/setUserInfo', res.data)
       console.log(res)
       Toast('登录成功')
-      this.$router.push('/')
+      // 判断有没有backUrl
+      const url = this.$route.query.backUrl || '/'
+      this.$router.replace(url)
     }
   },
 

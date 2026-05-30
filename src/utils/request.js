@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { Toast } from 'vant'
+import store from '@/store'
 
 // 创建一个 axios 实例
 const instance = axios.create({
@@ -20,6 +21,14 @@ instance.interceptors.request.use(function (config) {
     loadingType: 'spinner',
     duration: 0 // 持续加载，不自动关闭
   })
+
+  // 在请求拦截器中统一携带token
+  const token = store.getters.token
+  if (token) {
+    config.headers['Access-Token'] = token
+    config.headers.platform = 'H5'
+  }
+
   return config
 }, function (error) {
   // 对请求错误做些什么

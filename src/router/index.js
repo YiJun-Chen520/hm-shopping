@@ -75,6 +75,7 @@ router.beforeEach((to, from, next) => {
   if (!authUrl.includes(to.path)) {
     // 不需要登录的页面，直接放行
     next()
+    return
   }
 
   // 需要登录的页面，判断是否已经登录

@@ -69,6 +69,7 @@
         <span>首页</span>
       </div>
       <div class="icon-cart">
+        <span v-if="cartTotal > 0" class="num">{{ cartTotal }}</span>
         <van-icon name="shopping-cart-o" />
         <span>购物车</span>
       </div>
@@ -98,7 +99,7 @@
           <CountBox v-model="addCOunt"></CountBox>
         </div>
         <div class="showbtn" v-if="true">
-          <div class="btn" v-if="true">加入购物车</div>
+          <div class="btn" @click="addCart" v-if="true">加入购物车</div>
           <div class="btn now" v-else>立刻购买</div>
         </div>
         <div class="btn-none" v-else>该商品已抢完</div>
@@ -111,6 +112,8 @@
 import { getProDetailAPI, getProCommentAPI } from '@/api/product'
 import defaultImg from '@/assets/default-avatar.png'
 import CountBox from '@/components/CountBox.vue'
+import { Dialog } from 'vant'
+import { addCartAPI } from '@/api/cart'
 
 export default {
   name: 'ProDetail',
@@ -124,7 +127,8 @@ export default {
       defaultImg,
       mode: 'cart', // cart 加入购物车 buy 立刻购买
       showPannel: false,
-      addCOunt: 1
+      addCOunt: 1,
+      cartTotal: 0 // 购物车商品数量
     }
   },
   components: {
@@ -158,6 +162,43 @@ export default {
     buyFn () {
       this.mode = 'buy'
       this.showPannel = true
+    },
+    // 加入购物车
+    async addCart () {
+      // 判断token是否存在
+      if (!this.$store.getters.token) {
+        // 没有token，跳转到登录页
+        Dialog.confirm({
+          title: '温馨提示',
+          message: '此时需要登录才能继续操作哦',
+          confirmButtonText: '去登录',
+          cancelButtonText: '再逛逛'
+        }).then(() => {
+          // 跳转到登录页
+          this.$router.replace({
+            path: '/login',
+            query: {
+              backUrl: this.$route.fullPath // 登录成功后跳转回当前页面完整路径
+            }
+          })
+        }).catch(() => {
+          // 取消登录
+
+        })
+
+        return
+      }
+
+      // 正常购买
+      console.log('正常购买')
+      const { data } = await addCartAPI(
+        this.goodsId,
+        this.addCOunt,
+        this.detail.skuList[0].goods_sku_id
+      )
+      this.cartTotal = data.cartTotal
+      this.$toast('加入购物车成功')
+      this.showPannel = false
     }
   }
 }
@@ -358,4 +399,20 @@ export default {
   }
 }
 
+.footer .icon-cart {
+  position: relative;
+  padding: 0 6px;
+  .num {
+    z-index: 999;
+    position: absolute;
+    top: -2px;
+    right: 0;
+    min-width: 16px;
+    padding: 0 4px;
+    color: #fff;
+    text-align: center;
+    background-color: #ee0a24;
+    border-radius: 50%;
+  }
+}
 </style>
