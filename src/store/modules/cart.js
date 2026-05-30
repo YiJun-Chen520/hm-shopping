@@ -8,9 +8,26 @@ export default {
     }
   },
   mutations: {
+    // 获取购物车列表
     setCartList (state, payload) {
       state.cartList = payload
+    },
+
+    // 购物车列表多选框状态
+    toggleCheck (state, goodsId) {
+      const goods = state.cartList.find(item => item.goods_id === goodsId)
+      if (goods) {
+        goods.isChecked = !goods.isChecked
+      }
+    },
+
+    // 全选框状态
+    toggleAllChecked (state, isChecked) {
+      state.cartList.forEach(item => {
+        item.isChecked = isChecked
+      })
     }
+
   },
   actions: {
     async getCartList (context) {
@@ -45,6 +62,11 @@ export default {
       return getters.selCartList.reduce((sum, item) => {
         return sum + item.goods_num * item.goods.goods_price_min
       }, 0).toFixed(2)
+    },
+
+    // 判断是否全选
+    isAllChecked (state) {
+      return state.cartList.every(item => item.isChecked)
     }
   }
 }

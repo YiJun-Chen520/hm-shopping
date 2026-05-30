@@ -13,7 +13,7 @@
     <!-- 购物车列表 -->
     <div class="cart-list">
       <div class="cart-item" v-for="item in cartList" :key="item.goods_id">
-        <van-checkbox :value="item.isChecked"></van-checkbox>
+        <van-checkbox @click="toggleCheck(item.goods_id)" :value="item.isChecked"></van-checkbox>
         <div class="show">
           <img :src="item.goods.goods_image" alt="">
         </div>
@@ -28,8 +28,8 @@
     </div>
 
     <div class="footer-fixed">
-      <div  class="all-check">
-        <van-checkbox  icon-size="18"></van-checkbox>
+      <div @click="toggleAllChecked" class="all-check">
+        <van-checkbox  icon-size="18" :value="isAllChecked"></van-checkbox>
         全选
       </div>
 
@@ -59,13 +59,24 @@ export default {
       return this.$store.getters.token
     },
     ...mapState('cart', ['cartList']),
-    ...mapGetters('cart', ['cartTotal', 'selCartList', 'selCartTotal', 'selCartPrice'])
+    ...mapGetters('cart', ['cartTotal', 'isAllChecked', 'selCartTotal', 'selCartPrice'])
   },
   created () {
     // 先判断是否登录
     if (this.isLogin) {
       // 获取购物车列表
       this.$store.dispatch('cart/getCartList')
+    }
+  },
+  methods: {
+    // 切换单选
+    toggleCheck (goodsId) {
+      this.$store.commit('cart/toggleCheck', goodsId)
+    },
+
+    // 切换全选
+    toggleAllChecked () {
+      this.$store.commit('cart/toggleAllChecked', !this.isAllChecked)
     }
   }
 }
