@@ -8,3 +8,8 @@ export const addCartAPI = (goodsId, goodsNum, goodsSkuId) => {
     goodsSkuId
   })
 }
+
+// 获取购物车列表
+export const getCartListAPI = () => {
+  return request.get('/cart/list')
+}

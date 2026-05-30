@@ -2,9 +2,11 @@ import { getInfo, setInfo } from '@/utils/storage'
 
 export default {
   namespaced: true,
-  state: {
+  state () {
     // 用户权证信息
-    userInfo: getInfo()
+    return {
+      userInfo: getInfo()
+    }
   },
   mutations: {
     // 更新用户权证信息
