@@ -1,46 +1,57 @@
 <template>
   <div class="cart">
     <van-nav-bar title="购物车" fixed />
-    <!-- 购物车开头 -->
-    <div class="cart-title">
-      <span class="all">共<i>{{ cartTotal }}</i>件商品</span>
-      <span class="edit">
-        <van-icon name="edit" />
-        编辑
-      </span>
-    </div>
+    <div v-if="isLogin && cartTotal > 0">
+      <!-- 购物车开头 -->
+      <div class="cart-title">
+        <span class="all">共<i>{{ cartTotal }}</i>件商品</span>
+        <span @click="isEdit = !isEdit" class="edit">
+          <van-icon name="edit" />
+          编辑
+        </span>
+      </div>
 
-    <!-- 购物车列表 -->
-    <div class="cart-list">
-      <div class="cart-item" v-for="item in cartList" :key="item.goods_id">
-        <van-checkbox @click="toggleCheck(item.goods_id)" :value="item.isChecked"></van-checkbox>
-        <div class="show">
-          <img :src="item.goods.goods_image" alt="">
+      <!-- 购物车列表 -->
+      <div class="cart-list">
+        <div class="cart-item" v-for="item in cartList" :key="item.goods_id">
+          <van-checkbox @click="toggleCheck(item.goods_id)" :value="item.isChecked"></van-checkbox>
+          <div class="show">
+            <img :src="item.goods.goods_image" alt="">
+          </div>
+          <div class="info">
+            <span class="tit text-ellipsis-2">{{ item.goods.goods_name }}</span>
+            <span class="bottom">
+              <div class="price">¥ <span>{{ item.goods.goods_price_min }}</span></div>
+              <CountBox @input="(value) => changeCount(value, item.goods_id, item.goods_sku_id)" v-model="item.goods_num"></CountBox>
+            </span>
+          </div>
         </div>
-        <div class="info">
-          <span class="tit text-ellipsis-2">{{ item.goods.goods_name }}</span>
-          <span class="bottom">
-            <div class="price">¥ <span>{{ item.goods.goods_price_min }}</span></div>
-            <CountBox v-model="item.goods_num"></CountBox>
-          </span>
+      </div>
+
+      <div class="footer-fixed">
+        <div @click="toggleAllChecked" class="all-check">
+          <van-checkbox icon-size="18" :value="isAllChecked"></van-checkbox>
+          全选
+        </div>
+
+        <div class="all-total">
+          <div class="price">
+            <span>合计：</span>
+            <span>¥ <i class="totalPrice">{{ selCartPrice }}</i></span>
+          </div>
+          <div v-if="!isEdit" :class="{ disabled: selCartTotal === 0}" class="goPay">结算({{  selCartTotal }})</div>
+          <div @click="handleDel" v-else :class="{ disabled: selCartTotal === 0}" class="delete">删除</div>
         </div>
       </div>
     </div>
 
-    <div class="footer-fixed">
-      <div @click="toggleAllChecked" class="all-check">
-        <van-checkbox  icon-size="18" :value="isAllChecked"></van-checkbox>
-        全选
+    <!-- 购物车为空 -->
+    <div class="empty-cart" v-else>
+      <img src="@/assets/empty.png" alt="">
+      <div class="tips">
+        您的购物车是空的, 快去逛逛吧
       </div>
-
-      <div class="all-total">
-        <div class="price">
-          <span>合计：</span>
-          <span>¥ <i class="totalPrice">{{ selCartPrice }}</i></span>
-        </div>
-        <div v-if="true" :class="{ disabled: selCartTotal === 0}" class="goPay">结算({{  selCartTotal }})</div>
-        <div v-else :class="{ disabled: selCartTotal === 0}" class="delete">删除</div>
-      </div>
+      <div class="btn" @click="$router.push('/')">去逛逛</div>
     </div>
   </div>
 </template>
@@ -51,6 +62,11 @@ import { mapState, mapGetters } from 'vuex'
 
 export default {
   name: 'CartPage',
+  data () {
+    return {
+      isEdit: false
+    }
+  },
   components: {
     CountBox
   },
@@ -77,6 +93,35 @@ export default {
     // 切换全选
     toggleAllChecked () {
       this.$store.commit('cart/toggleAllChecked', !this.isAllChecked)
+    },
+
+    // 修改商品数量
+    changeCount (goodsNum, goodsId, goodsSkuId) {
+      this.$store.dispatch('cart/changeCount', {
+        goodsId,
+        goodsNum,
+        goodsSkuId
+      })
+    },
+
+    // 删除选中商品
+    handleDel () {
+      if (this.selCartTotal === 0) return
+
+      this.$store.dispatch('cart/delSelect')
+      this.isEdit = false
+    }
+  },
+  watch: {
+    // 监听编辑按钮
+    isEdit (value) {
+      if (value) {
+        // 进入删除状态，取消全选
+        this.$store.commit('cart/toggleAllChecked', false)
+      } else {
+        // 进入结算状态，全选
+        this.$store.commit('cart/toggleAllChecked', true)
+      }
     }
   }
 }
@@ -216,5 +261,31 @@ export default {
     }
   }
 
+}
+
+.empty-cart {
+  padding: 80px 30px;
+  img {
+    width: 140px;
+    height: 92px;
+    display: block;
+    margin: 0 auto;
+  }
+  .tips {
+    text-align: center;
+    color: #666;
+    margin: 30px;
+  }
+  .btn {
+    width: 110px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    background-color: #fa2c20;
+    border-radius: 16px;
+    color: #fff;
+    display: block;
+    margin: 0 auto;
+  }
 }
 </style>

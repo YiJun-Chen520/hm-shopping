@@ -1,4 +1,5 @@
-import { getCartListAPI } from '@/api/cart'
+import { getCartListAPI, changeCountAPI, delSelectAPI } from '@/api/cart'
+import { Toast } from 'vant'
 
 export default {
   namespaced: true,
@@ -26,10 +27,19 @@ export default {
       state.cartList.forEach(item => {
         item.isChecked = isChecked
       })
+    },
+
+    // 设置商品数量
+    setGoodsNum (state, payload) {
+      const goods = state.cartList.find(item => item.goods_id === payload.goodsId)
+      if (goods) {
+        goods.goods_num = payload.goodsNum
+      }
     }
 
   },
   actions: {
+    // 获取购物车列表
     async getCartList (context) {
       const res = await getCartListAPI()
       console.log(res)
@@ -37,6 +47,27 @@ export default {
         item.isChecked = true
       })
       context.commit('setCartList', res.data.list)
+    },
+
+    // 修改商品数量
+    async changeCount (context, payload) {
+      const { goodsId, goodsNum, goodsSkuId } = payload
+      // 本地更新商品数量
+      context.commit('setGoodsNum', {
+        goodsId,
+        goodsNum
+      })
+      // 后台更新商品数量
+      await changeCountAPI(goodsId, goodsNum, goodsSkuId)
+    },
+
+    async delSelect (context) {
+      // 获取选中的商品的id数组
+      const cartIds = context.getters.selCartList.map(item => item.id)
+      await delSelectAPI(cartIds)
+      Toast.success('删除成功')
+      // 重新获取购物车列表
+      context.dispatch('getCartList')
     }
   },
   getters: {
