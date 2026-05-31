@@ -25,3 +25,13 @@ export const submitOrderAPI = (mode, params) => {
     ...params
   })
 }
+
+// 订单列表
+export const getMyOrderListAPI = (dataType, page) => {
+  return request.get('/order/list', {
+    params: {
+      dataType,
+      page
+    }
+  })
+}
