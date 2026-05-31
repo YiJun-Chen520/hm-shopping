@@ -96,11 +96,11 @@
         </div>
         <div class="num-box">
           <span>数量</span>
-          <CountBox v-model="addCOunt"></CountBox>
+          <CountBox v-model="addCount"></CountBox>
         </div>
-        <div class="showbtn" v-if="true">
-          <div class="btn" @click="addCart" v-if="true">加入购物车</div>
-          <div class="btn now" v-else>立刻购买</div>
+        <div class="showbtn" v-if="detail.stock_total > 0">
+          <div class="btn" @click="addCart" v-if="mode === 'cart'">加入购物车</div>
+          <div class="btn now" @click="goBuyNow" v-else>立刻购买</div>
         </div>
         <div class="btn-none" v-else>该商品已抢完</div>
       </div>
@@ -112,8 +112,8 @@
 import { getProDetailAPI, getProCommentAPI } from '@/api/product'
 import defaultImg from '@/assets/default-avatar.png'
 import CountBox from '@/components/CountBox.vue'
-import { Dialog } from 'vant'
 import { addCartAPI } from '@/api/cart'
+import loginConfirm from '@/mixins/loginConfirm'
 
 export default {
   name: 'ProDetail',
@@ -127,10 +127,11 @@ export default {
       defaultImg,
       mode: 'cart', // cart 加入购物车 buy 立刻购买
       showPannel: false,
-      addCOunt: 1,
+      addCount: 1,
       cartTotal: 0 // 购物车商品数量
     }
   },
+  mixins: [loginConfirm],
   components: {
     CountBox
   },
@@ -160,32 +161,12 @@ export default {
       this.showPannel = true
     },
     buyFn () {
-      this.mode = 'buy'
+      this.mode = 'buyNow'
       this.showPannel = true
     },
     // 加入购物车
     async addCart () {
-      // 判断token是否存在
-      if (!this.$store.getters.token) {
-        // 没有token，跳转到登录页
-        Dialog.confirm({
-          title: '温馨提示',
-          message: '此时需要登录才能继续操作哦',
-          confirmButtonText: '去登录',
-          cancelButtonText: '再逛逛'
-        }).then(() => {
-          // 跳转到登录页
-          this.$router.replace({
-            path: '/login',
-            query: {
-              backUrl: this.$route.fullPath // 登录成功后跳转回当前页面完整路径
-            }
-          })
-        }).catch(() => {
-          // 取消登录
-
-        })
-
+      if (this.loginConfirm()) {
         return
       }
 
@@ -193,12 +174,27 @@ export default {
       console.log('正常购买')
       const { data } = await addCartAPI(
         this.goodsId,
-        this.addCOunt,
+        this.addCount,
         this.detail.skuList[0].goods_sku_id
       )
       this.cartTotal = data.cartTotal
       this.$toast('加入购物车成功')
       this.showPannel = false
+    },
+
+    goBuyNow () {
+      if (this.loginConfirm()) {
+        return
+      }
+      this.$router.push({
+        path: '/pay',
+        query: {
+          mode: 'buyNow',
+          goodsId: this.goodsId,
+          goodsSkuId: this.detail.skuList[0].goods_sku_id,
+          goodsNum: this.addCount
+        }
+      })
     }
   }
 }
